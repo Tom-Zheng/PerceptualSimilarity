@@ -1,3 +1,24 @@
+# Training for TNN
+
+conda env: lpips
+
+Training script: `train_test_metric.sh`
+
+## TODO
+- [ ] Understand training process
+- [ ] idea 2: BCE ranking loss on TNN data (supervised by time distance)
+- [ ] idea 1: direct regress PSNR
+
+## Training
+sh scripts/train_test_metric.sh 0 alex
+
+- input res here: `load_size`
+
+```python
+def CreateDataLoader(datafolder,dataroot='./dataset',dataset_mode='2afc',load_size=64,batch_size=1,serial_batches=True,nThreads=4):
+```
+- open visdom to check log
+- `--train_trunk` to fine tune network, `--from-scratch` to train from scratch
 
 ## Perceptual Similarity Metric and Dataset [[Project Page]](http://richzhang.github.io/PerceptualSimilarity/)
 

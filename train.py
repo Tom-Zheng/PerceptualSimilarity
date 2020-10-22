@@ -1,5 +1,6 @@
 import torch.backends.cudnn as cudnn
 cudnn.benchmark=False
+import torch
 
 import numpy as np
 import time
@@ -9,6 +10,9 @@ from data import data_loader as dl
 import argparse
 from util.visualizer import Visualizer
 from IPython import embed
+
+torch.manual_seed(0)
+np.random.seed(0)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets', type=str, nargs='+', default=['train/traditional','train/cnn','train/mix'], help='datasets to train on: [train/traditional],[train/cnn],[train/mix],[val/traditional],[val/cnn],[val/color],[val/deblur],[val/frameinterp],[val/superres]')
@@ -25,9 +29,9 @@ parser.add_argument('--display_freq', type=int, default=5000, help='frequency (i
 parser.add_argument('--print_freq', type=int, default=5000, help='frequency (in instances) of showing training results on console')
 parser.add_argument('--save_latest_freq', type=int, default=20000, help='frequency (in instances) of saving the latest results')
 parser.add_argument('--save_epoch_freq', type=int, default=1, help='frequency of saving checkpoints at the end of epochs')
-parser.add_argument('--display_id', type=int, default=0, help='window id of the visdom display, [0] for no displaying')
+parser.add_argument('--display_id', type=int, default=1, help='window id of the visdom display, [0] for no displaying')
 parser.add_argument('--display_winsize', type=int, default=256,  help='display window size')
-parser.add_argument('--display_port', type=int, default=8001,  help='visdom display port')
+parser.add_argument('--display_port', type=int, default=8097,  help='visdom display port')
 parser.add_argument('--use_html', action='store_true', help='save off html pages')
 parser.add_argument('--checkpoints_dir', type=str, default='checkpoints', help='checkpoints directory')
 parser.add_argument('--name', type=str, default='tmp', help='directory name for training')
@@ -35,6 +39,7 @@ parser.add_argument('--name', type=str, default='tmp', help='directory name for 
 parser.add_argument('--from_scratch', action='store_true', help='model was initialized from scratch')
 parser.add_argument('--train_trunk', action='store_true', help='model trunk was trained/tuned')
 parser.add_argument('--train_plot', action='store_true', help='plot saving')
+parser.add_argument('--dataset_mode', type=str, default='tnn', help='directory name for training')
 
 opt = parser.parse_args()
 opt.save_dir = os.path.join(opt.checkpoints_dir,opt.name)
@@ -47,7 +52,7 @@ trainer.initialize(model=opt.model, net=opt.net, use_gpu=opt.use_gpu, is_train=T
     pnet_rand=opt.from_scratch, pnet_tune=opt.train_trunk, gpu_ids=opt.gpu_ids)
 
 # load data from all training sets
-data_loader = dl.CreateDataLoader(opt.datasets,dataset_mode='2afc', batch_size=opt.batch_size, serial_batches=False, nThreads=opt.nThreads)
+data_loader = dl.CreateDataLoader(opt.datasets,dataset_mode=opt.dataset_mode, batch_size=opt.batch_size, serial_batches=False, nThreads=opt.nThreads)
 dataset = data_loader.load_data()
 dataset_size = len(data_loader)
 D = len(dataset)

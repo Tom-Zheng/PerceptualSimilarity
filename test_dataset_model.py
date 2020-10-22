@@ -3,10 +3,14 @@ import lpips
 from data import data_loader as dl
 import argparse
 from IPython import embed
+import torch
+
+torch.manual_seed(0)
+np.random.seed(0)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset_mode', type=str, default='2afc', help='[2afc,jnd]')
-parser.add_argument('--datasets', type=str, nargs='+', default=['val/traditional','val/cnn','val/superres','val/deblur','val/color','val/frameinterp'], help='datasets to test - for jnd mode: [val/traditional],[val/cnn]; for 2afc mode: [train/traditional],[train/cnn],[train/mix],[val/traditional],[val/cnn],[val/color],[val/deblur],[val/frameinterp],[val/superres]')
+parser.add_argument('--dataset_mode', type=str, default='tnn', help='[2afc,jnd]')
+parser.add_argument('--datasets', type=str, nargs='+', default=['val'])
 parser.add_argument('--model', type=str, default='lpips', help='distance model type [lpips] for linearly calibrated net, [baseline] for off-the-shelf network, [l2] for euclidean distance, [ssim] for Structured Similarity Image Metric')
 parser.add_argument('--net', type=str, default='alex', help='[squeeze], [alex], or [vgg] for network architectures')
 parser.add_argument('--colorspace', type=str, default='Lab', help='[Lab] or [RGB] for colorspace to use for l2, ssim model types')
@@ -46,6 +50,8 @@ for dataset in opt.datasets:
 		(score, results_verbose) = lpips.score_2afc_dataset(data_loader, trainer.forward, name=dataset)
 	elif(opt.dataset_mode=='jnd'):
 		(score, results_verbose) = lpips.score_jnd_dataset(data_loader, trainer.forward, name=dataset)
+	elif(opt.dataset_mode=='tnn'):
+		(score, results_verbose) = lpips.score_tnn_dataset(data_loader, trainer.forward, name=dataset)
 
 	# print results
 	print('  Dataset [%s]: %.2f'%(dataset,100.*score))

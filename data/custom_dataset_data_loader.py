@@ -10,6 +10,9 @@ def CreateDataset(dataroots,dataset_mode='2afc',load_size=64,):
     elif dataset_mode=='jnd': # human judgements
         from data.dataset.jnd_dataset import JNDDataset
         dataset = JNDDataset()
+    elif dataset_mode == 'tnn':
+        from data.dataset.tnn_tafc_dataset import TNNDataset
+        dataset = TNNDataset()
     else:
         raise ValueError("Dataset Mode [%s] not recognized."%self.dataset_mode)
 

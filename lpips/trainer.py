@@ -11,7 +11,6 @@ from tqdm import tqdm
 import lpips
 import os
 
-
 class Trainer():
     def name(self):
         return self.model_name
@@ -278,3 +277,39 @@ def score_jnd_dataset(data_loader, func, name=''):
     score = lpips.voc_ap(recs,precs)
 
     return(score, dict(ds=ds,sames=sames))
+
+
+def score_tnn_dataset(data_loader, func, name=''):
+    ''' Function computes Two Alternative Forced Choice (2AFC) score using
+        distance function 'func' in dataset 'data_loader'
+    INPUTS
+        data_loader - CustomDatasetDataLoader object - contains a TwoAFCDataset inside
+        func - callable distance function - calling d=func(in0,in1) should take 2
+            pytorch tensors with shape Nx3xXxY, and return numpy array of length N
+    OUTPUTS
+        [0] - 2AFC score in [0,1], fraction of time func agrees with human evaluators
+        [1] - dictionary with following elements
+            d0s,d1s - N arrays containing distances between reference patch to perturbed patches 
+            gts - N array in [0,1], preferred patch selected by human evaluators
+                (closer to "0" for left patch p0, "1" for right patch p1,
+                "0.6" means 60pct people preferred right patch, 40pct preferred left)
+            scores - N array in [0,1], corresponding to what percentage function agreed with humans
+    CONSTS
+        N - number of test triplets in data_loader
+    '''
+
+    d0s = []
+    d1s = []
+    gts = []
+
+    for data in tqdm(data_loader.load_data(), desc=name):
+        d0s+=func(data['ref'],data['p0']).data.cpu().numpy().flatten().tolist()
+        d1s+=func(data['ref'],data['p1']).data.cpu().numpy().flatten().tolist()
+        gts+=data['judge'].cpu().numpy().flatten().tolist()
+
+    d0s = np.array(d0s)
+    d1s = np.array(d1s)
+    gts = np.array(gts)
+    scores = (d0s<d1s)*(1.-gts) + (d1s<d0s)*gts + (d1s==d0s)*.5
+
+    return(np.mean(scores), dict(d0s=d0s,d1s=d1s,gts=gts,scores=scores))
