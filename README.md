@@ -10,7 +10,7 @@ Training script: `train_test_metric.sh`
 - [ ] idea 1: direct regress PSNR
 
 ## Training
-sh scripts/train_test_metric.sh 0 alex
+sh scripts/train_test_metric.sh alex_alex_tnn_201020_tune_res256 alex
 
 - input res here: `load_size`
 

@@ -4,15 +4,18 @@ NET=${2}
 mkdir checkpoints
 mkdir checkpoints/${NET}_${TRIAL}
 python ./train.py --use_gpu --net ${NET} --name ${NET}_${TRIAL} \
---nepoch 200 \
---nepoch_decay 200 \
---display_freq 10 \
---print_freq 10 \
+--nepoch 500 \
+--nepoch_decay 500 \
 --dataset_mode tnn \
---batch_size 64 \
---datasets train/traditional \
+--display_id 10 \
+--print_freq 10 \
+--batch_size 16 \
+--load_size 128 \
+--train_trunk \
 --train_plot  
-# --train_trunk
+# --display_freq 10 \
+# --from_scratch \
+
 
 # python ./test_dataset_model.py --use_gpu --net ${NET} --model_path ./checkpoints/${NET}_${TRIAL}/latest_net_.pth \ 
 # --train_trunk

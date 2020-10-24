@@ -39,12 +39,16 @@ parser.add_argument('--name', type=str, default='tmp', help='directory name for 
 parser.add_argument('--from_scratch', action='store_true', help='model was initialized from scratch')
 parser.add_argument('--train_trunk', action='store_true', help='model trunk was trained/tuned')
 parser.add_argument('--train_plot', action='store_true', help='plot saving')
+
 parser.add_argument('--dataset_mode', type=str, default='tnn', help='directory name for training')
+parser.add_argument('--load_size', type=int, default=256,  help='load_size')
 
 opt = parser.parse_args()
 opt.save_dir = os.path.join(opt.checkpoints_dir,opt.name)
 if(not os.path.exists(opt.save_dir)):
     os.mkdir(opt.save_dir)
+
+print(opt)
 
 # initialize model
 trainer = lpips.Trainer()
@@ -59,6 +63,9 @@ D = len(dataset)
 print('Loading %i instances from'%dataset_size,opt.datasets)
 visualizer = Visualizer(opt)
 
+data_loader_val = dl.CreateDataLoader('val', dataset_mode=opt.dataset_mode, batch_size=opt.batch_size, serial_batches=False, nThreads=opt.nThreads)
+
+# val_date_loader = dl.CreateDataLoader(opt.datasets,dataset_mode=opt.dataset_mode, batch_size=opt.batch_size, serial_batches=False, nThreads=opt.nThreads)
 total_steps = 0
 fid = open(os.path.join(opt.checkpoints_dir,opt.name,'train_log.txt'),'w+')
 for epoch in range(1, opt.nepoch + opt.nepoch_decay + 1):
@@ -104,5 +111,11 @@ for epoch in range(1, opt.nepoch + opt.nepoch_decay + 1):
     if epoch > opt.nepoch:
         trainer.update_learning_rate(opt.nepoch_decay)
 
+    # evaluating
+    trainer.set_eval()
+    with torch.no_grad():
+        (score, results_verbose) = lpips.score_tnn_dataset(data_loader_val, trainer.forward, name='Val')
+        visualizer.plot_val_errors(epoch, opt, score)
+    
 # trainer.save_done(True)
 fid.close()

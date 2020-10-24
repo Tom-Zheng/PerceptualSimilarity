@@ -203,6 +203,11 @@ class Trainer():
         np.save(os.path.join(self.save_dir, 'done_flag'),flag)
         np.savetxt(os.path.join(self.save_dir, 'done_flag'),[flag,],fmt='%i')
 
+    def set_eval(self):
+        self.net.eval()
+    
+    def set_train(self):
+        self.net.train()
 
 def score_2afc_dataset(data_loader, func, name=''):
     ''' Function computes Two Alternative Forced Choice (2AFC) score using

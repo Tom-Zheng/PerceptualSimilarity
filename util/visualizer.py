@@ -6,6 +6,7 @@ from . import html
 import matplotlib.pyplot as plt
 import math
 # from IPython import embed
+import pdb
 
 def zoom_to_res(img,res=256,order=0,axis=0):
     # img   3xXxX
@@ -136,6 +137,21 @@ class Visualizer():
                 'xlabel': 'epoch',
                 'ylabel': 'loss'},
             win=self.display_id)
+
+    # plot 
+    def plot_val_errors(self, epoch, opt, acc):
+        if not hasattr(self, 'plot_data_val'):
+            self.plot_data_val = {'X':[],'Y':[]}
+        self.plot_data_val['X'].append(epoch)
+        self.plot_data_val['Y'].append(acc)
+        self.vis.line(
+            X=np.array(self.plot_data_val['X']),
+            Y=np.array(self.plot_data_val['Y']),
+            opts={
+                'title': self.name + ' val acc',
+                'xlabel': 'epoch',
+                'ylabel': 'acc'},
+            win=self.display_id+2)
 
     # errors: same format as |errors| of plotCurrentErrors
     def print_current_errors(self, epoch, i, errors, t, t2=-1, t2o=-1, fid=None):
