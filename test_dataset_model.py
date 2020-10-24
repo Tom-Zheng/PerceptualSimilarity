@@ -5,8 +5,8 @@ import argparse
 from IPython import embed
 import torch
 
-torch.manual_seed(0)
-np.random.seed(0)
+# torch.manual_seed(0)
+# np.random.seed(0)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_mode', type=str, default='tnn', help='[2afc,jnd]')

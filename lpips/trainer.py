@@ -10,6 +10,10 @@ from scipy.ndimage import zoom
 from tqdm import tqdm
 import lpips
 import os
+import matplotlib.pyplot as plt
+from PIL import Image
+import pdb
+
 
 class Trainer():
     def name(self):
@@ -284,7 +288,7 @@ def score_jnd_dataset(data_loader, func, name=''):
     return(score, dict(ds=ds,sames=sames))
 
 
-def score_tnn_dataset(data_loader, func, name=''):
+def score_tnn_dataset(data_loader, func, epoch, name=''):
     ''' Function computes Two Alternative Forced Choice (2AFC) score using
         distance function 'func' in dataset 'data_loader'
     INPUTS
@@ -307,14 +311,59 @@ def score_tnn_dataset(data_loader, func, name=''):
     d1s = []
     gts = []
 
+    ref_paths = []
+    p0_paths = []
+    p1_paths = []
+
     for data in tqdm(data_loader.load_data(), desc=name):
         d0s+=func(data['ref'],data['p0']).data.cpu().numpy().flatten().tolist()
         d1s+=func(data['ref'],data['p1']).data.cpu().numpy().flatten().tolist()
         gts+=data['judge'].cpu().numpy().flatten().tolist()
 
+        ref_paths += data['ref_path']
+        p0_paths += data['p0_path']
+        p1_paths += data['p1_path']
+
+
     d0s = np.array(d0s)
     d1s = np.array(d1s)
     gts = np.array(gts)
+
+
+    # if epoch > 17:
+    if False:
+    # if epoch <= 1 or epoch > 17:
+
+        print(d0s)
+        # pdb.set_trace()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(range(d0s.shape[0]), d0s)
+        ax.plot(range(d1s.shape[0]), d1s)
+        plt.title("d")
+
+        fig = plt.figure()
+        n_selected = 4
+        selected = np.random.choice(len(ref_paths), n_selected , replace=False)
+        for i in range(n_selected):
+            ax_ref = fig.add_subplot(4,3,i*3+1)
+            ax_p0 = fig.add_subplot(4,3,i*3+2)
+            ax_p1 = fig.add_subplot(4,3,i*3+3)
+            ax_ref.imshow(Image.open(ref_paths[selected[i]]).convert('RGB'))
+            ax_p0.imshow(Image.open(p0_paths[selected[i]]).convert('RGB'))
+            ax_p1.imshow(Image.open(p1_paths[selected[i]]).convert('RGB'))
+            print(ref_paths[i])
+            print(p0_paths[i])
+            print(p1_paths[i])
+
+            print("sample i: {}; d0: {}; d1: {}; gt: {}".format(selected[i], d0s[selected[i]], d1s[selected[i]], gts[selected[i]]))
+            
+        plt.show()
+
+        
+
     scores = (d0s<d1s)*(1.-gts) + (d1s<d0s)*gts + (d1s==d0s)*.5
+
+    print('gts ratio: ', gts.sum() / gts.shape[0] )
 
     return(np.mean(scores), dict(d0s=d0s,d1s=d1s,gts=gts,scores=scores))
