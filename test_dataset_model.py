@@ -10,7 +10,7 @@ import torch
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_mode', type=str, default='tnn', help='[2afc,jnd]')
-parser.add_argument('--datasets', type=str, nargs='+', default=['val'])
+parser.add_argument('--datasets', type=str, nargs='+', default=['test'])
 parser.add_argument('--model', type=str, default='lpips', help='distance model type [lpips] for linearly calibrated net, [baseline] for off-the-shelf network, [l2] for euclidean distance, [ssim] for Structured Similarity Image Metric')
 parser.add_argument('--net', type=str, default='alex', help='[squeeze], [alex], or [vgg] for network architectures')
 parser.add_argument('--colorspace', type=str, default='Lab', help='[Lab] or [RGB] for colorspace to use for l2, ssim model types')
@@ -25,6 +25,12 @@ parser.add_argument('--from_scratch', action='store_true', help='model was initi
 parser.add_argument('--train_trunk', action='store_true', help='model trunk was trained/tuned')
 parser.add_argument('--version', type=str, default='0.1', help='v0.1 is latest, v0.0 was original release')
 
+
+parser.add_argument('--load_size', type=int, default=256,  help='load_size')
+#dataset path 
+parser.add_argument('--img_path', type=str, help='base path for images')
+parser.add_argument('--csv_path', type=str, help='base path for csv and result images')
+ 
 opt = parser.parse_args()
 if(opt.model in ['l2','ssim']):
 	opt.batch_size = 1
@@ -43,16 +49,11 @@ elif(opt.model in ['l2','ssim']):
 
 # initialize data loader
 for dataset in opt.datasets:
-	data_loader = dl.CreateDataLoader(dataset,dataset_mode=opt.dataset_mode, batch_size=opt.batch_size, nThreads=opt.nThreads)
-
+	data_loader = dl.CreateDataLoader(opt, dataset,dataset_mode=opt.dataset_mode, load_size=opt.load_size, batch_size=opt.batch_size, nThreads=opt.nThreads)
 	# evaluate model on data
 	if(opt.dataset_mode=='2afc'):
 		(score, results_verbose) = lpips.score_2afc_dataset(data_loader, trainer.forward, name=dataset)
 	elif(opt.dataset_mode=='jnd'):
 		(score, results_verbose) = lpips.score_jnd_dataset(data_loader, trainer.forward, name=dataset)
 	elif(opt.dataset_mode=='tnn'):
-		(score, results_verbose) = lpips.score_tnn_dataset(data_loader, trainer.forward, name=dataset)
-
-	# print results
-	print('  Dataset [%s]: %.2f'%(dataset,100.*score))
-
+		lpips.eval_tnn_testset(data_loader, trainer.forward, opt.csv_path)

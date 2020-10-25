@@ -5,9 +5,9 @@ conda env: lpips
 Training script: `train_test_metric.sh`
 
 ## TODO
-- [ ] Understand training process
-- [ ] idea 2: BCE ranking loss on TNN data (supervised by time distance)
-- [ ] idea 1: direct regress PSNR
+- [x] Understand training process
+- [x] idea 2: BCE ranking loss on TNN data (supervised by time distance)
+- [x] idea 1: direct regress PSNR
 
 ## Training
 sh scripts/train_test_metric.sh alex_alex_tnn_201020_tune_res256 alex
@@ -19,6 +19,13 @@ def CreateDataLoader(datafolder,dataroot='./dataset',dataset_mode='2afc',load_si
 ```
 - open visdom to check log
 - `--train_trunk` to fine tune network, `--from-scratch` to train from scratch
+
+
+- training deployment
+example run:
+```
+sh scripts/submit_exp.sh test_run /home/zheng/Desktop/rl/data/20201024/img /home/zheng/Desktop/rl/data/20201024/exp211_False_False 0 0
+```
 
 ## Perceptual Similarity Metric and Dataset [[Project Page]](http://richzhang.github.io/PerceptualSimilarity/)
 

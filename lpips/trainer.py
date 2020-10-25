@@ -13,6 +13,9 @@ import os
 import matplotlib.pyplot as plt
 from PIL import Image
 import pdb
+import time
+import os
+import pandas as pd
 
 
 class Trainer():
@@ -288,7 +291,7 @@ def score_jnd_dataset(data_loader, func, name=''):
     return(score, dict(ds=ds,sames=sames))
 
 
-def score_tnn_dataset(data_loader, func, epoch, name=''):
+def score_tnn_dataset(data_loader, func, epoch=0, name=''):
     ''' Function computes Two Alternative Forced Choice (2AFC) score using
         distance function 'func' in dataset 'data_loader'
     INPUTS
@@ -367,3 +370,40 @@ def score_tnn_dataset(data_loader, func, epoch, name=''):
     print('gts ratio: ', gts.sum() / gts.shape[0] )
 
     return(np.mean(scores), dict(d0s=d0s,d1s=d1s,gts=gts,scores=scores))
+
+def eval_tnn_testset(data_loader, func, save_path):
+    ''' Function computes Two Alternative Forced Choice (2AFC) score using
+        the dataloader will iterate over lr-ref pairs (lr, ref_i, _not_used)
+        N lrs, M refs
+
+        output: NxM csv, filled with distances 
+    '''
+    d0s = []
+    ref_paths = []   #lr
+    p0_paths = []    #ref
+    
+    start = time.time()
+    for data in tqdm(data_loader.load_data(), desc='test'):
+        d0s+=func(data['ref'],data['p0']).data.cpu().numpy().flatten().tolist()
+        ref_paths += data['ref_path']
+        p0_paths += data['p0_path']
+    end = time.time()
+
+    ref_paths_unique = sorted(list(set(ref_paths)))
+    p0_paths_unique = sorted(list(set(p0_paths)))
+
+    N = len(ref_paths_unique)
+    M = len(p0_paths_unique)
+
+    assert(len(d0s) == N*M)
+    scores = np.array(d0s).reshape((N,M))
+
+    scores_df = pd.DataFrame(data=scores,
+                            index=ref_paths_unique, 
+                            columns=p0_paths_unique)
+    
+    path = os.path.join(save_path,'lpips_test.csv')
+    scores_df.to_csv(path)
+
+    print("Evaluated {} pairs in {} seconds.".format(len(d0s), end-start))
+    print('Save to:', path)
