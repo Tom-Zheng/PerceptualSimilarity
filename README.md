@@ -24,7 +24,7 @@ def CreateDataLoader(datafolder,dataroot='./dataset',dataset_mode='2afc',load_si
 - training deployment
 example run:
 ```
-sh scripts/submit_exp.sh test_run /home/zheng/Desktop/rl/data/20201024/img /home/zheng/Desktop/rl/data/20201024/exp211_False_False 0 0
+sh scripts/submit_exp.sh test_run /home/zhengtian/tnn_data/panda/for_sr /home/zhengtian/tnn_data/panda/for_sr/exp/exp211_False_False 0 0
 ```
 
 ## Perceptual Similarity Metric and Dataset [[Project Page]](http://richzhang.github.io/PerceptualSimilarity/)
