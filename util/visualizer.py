@@ -152,6 +152,42 @@ class Visualizer():
                 'xlabel': 'epoch',
                 'ylabel': 'acc'},
             win=self.display_id+2)
+    
+    def plot_test_psnr(self, epoch, opt, errors, name='psnr_plot'):
+        if not hasattr(self, 'plot_data_test'):
+            self.plot_data_test = {'X':[],'Y':[], 'legend':list(errors.keys())}
+        self.plot_data_test['X'].append(epoch)
+        self.plot_data_test['Y'].append([errors[k] for k in self.plot_data_test['legend']])
+        self.vis.line(
+            X=np.stack([np.array(self.plot_data_test['X'])]*len(self.plot_data_test['legend']),1),
+            Y=np.array(self.plot_data_test['Y']),
+            opts={
+                'title': self.name + ' test psnr',
+                'legend': self.plot_data_test['legend'],
+                'xlabel': 'epoch',
+                'ylabel': 'psnr'},
+            win=self.display_id+3)
+        
+        to_plot = True
+        plot_keys = ['lpips_psnr']
+        if(to_plot):
+            (f,ax) = plt.subplots(1,1)
+        for (k,kname) in enumerate(plot_keys):
+            kk = np.where(np.array(self.plot_data_test['legend'])==kname)[0][0]
+            x = self.plot_data_test['X']
+            y = np.array(self.plot_data_test['Y'])[:,kk]
+            if(to_plot):
+                ax.plot(x, y, 'o-', label=kname)
+            np.save(os.path.join(self.web_dir,'%s_x')%kname,x)
+            np.save(os.path.join(self.web_dir,'%s_y')%kname,y)
+
+        if(to_plot):
+            plt.legend(loc=0,fontsize='small')
+            plt.xlabel('epoch')
+            plt.ylabel('Value')
+            f.savefig(os.path.join(self.web_dir,'%s.png'%name))
+            f.clf()
+            plt.close()
 
     # errors: same format as |errors| of plotCurrentErrors
     def print_current_errors(self, epoch, i, errors, t, t2=-1, t2o=-1, fid=None):

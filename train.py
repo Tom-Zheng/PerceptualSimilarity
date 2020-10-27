@@ -11,6 +11,7 @@ import argparse
 from util.visualizer import Visualizer
 from IPython import embed
 import pdb
+import pandas as pd
 
 # torch.manual_seed(0)
 # np.random.seed(0)
@@ -47,6 +48,8 @@ parser.add_argument('--load_size', type=int, default=256,  help='load_size')
 #dataset path 
 parser.add_argument('--img_path', type=str, help='base path for images')
 parser.add_argument('--csv_path', type=str, help='base path for csv and result images')
+parser.add_argument('--full_eval_freq', type=int, default=100,  help='load_size')
+parser.add_argument('--lr', type=float, default=0.00001,  help='load_size')
 
 opt = parser.parse_args()
 opt.save_dir = os.path.join(opt.checkpoints_dir,opt.name)
@@ -55,10 +58,13 @@ if(not os.path.exists(opt.save_dir)):
 
 print(opt)
 
+psnr_df = pd.read_csv(os.path.join(opt.csv_path, 'psnr.csv'), index_col=0)
+psnrs = psnr_df.to_numpy()
+
 # initialize model
 trainer = lpips.Trainer()
 trainer.initialize(model=opt.model, net=opt.net, use_gpu=opt.use_gpu, is_train=True, 
-    pnet_rand=opt.from_scratch, pnet_tune=opt.train_trunk, gpu_ids=opt.gpu_ids)
+    pnet_rand=opt.from_scratch, pnet_tune=opt.train_trunk, gpu_ids=opt.gpu_ids, lr=opt.lr)
 
 # load data from all training sets
 data_loader = dl.CreateDataLoader(opt, opt.datasets,dataset_mode=opt.dataset_mode, load_size=opt.load_size, batch_size=opt.batch_size, serial_batches=False, nThreads=opt.nThreads)
@@ -69,14 +75,17 @@ print('Loading %i instances from'%dataset_size,opt.datasets)
 visualizer = Visualizer(opt)
 
 if opt.dataset_mode == 'tnn':
-    data_loader_val = dl.CreateDataLoader(opt,'val', dataset_mode=opt.dataset_mode, load_size=opt.load_size, batch_size=opt.batch_size, serial_batches=False, nThreads=opt.nThreads)
+    # data_loader_val = dl.CreateDataLoader(opt,'val', dataset_mode=opt.dataset_mode, load_size=opt.load_size, batch_size=opt.batch_size, serial_batches=False, nThreads=opt.nThreads)
+    data_loader_test = dl.CreateDataLoader(opt, 'test', dataset_mode=opt.dataset_mode, load_size=opt.load_size, batch_size=opt.batch_size, nThreads=opt.nThreads)
 
 total_steps = 0
 fid = open(os.path.join(opt.checkpoints_dir,opt.name,'train_log.txt'),'w+')
 
 if opt.dataset_mode == 'tnn':
     trainer.set_eval()
-    (score, results_verbose) = lpips.score_tnn_dataset(data_loader_val, trainer.forward, 0, name='Val')
+    # (score, results_verbose) = lpips.score_tnn_dataset(data_loader_val, trainer.forward, 0, name='Val')
+    psnr_collection = lpips.eval_tnn_testset_psnr(data_loader_test, trainer.forward, opt.csv_path, 0, psnrs)
+    visualizer.plot_test_psnr(0, opt, psnr_collection)
     trainer.set_train()
 
 for epoch in range(1, opt.nepoch + opt.nepoch_decay + 1):
@@ -124,11 +133,14 @@ for epoch in range(1, opt.nepoch + opt.nepoch_decay + 1):
 
     # evaluating
     if opt.dataset_mode == 'tnn':
-        trainer.set_eval()
-        with torch.no_grad():
-            (score, results_verbose) = lpips.score_tnn_dataset(data_loader_val, trainer.forward, epoch, name='Val')
-            visualizer.plot_val_errors(epoch, opt, score)
-        trainer.set_train()
+        if epoch % opt.full_eval_freq == 0:
+            trainer.set_eval()
+            with torch.no_grad():
+                # (score, results_verbose) = lpips.score_tnn_dataset(data_loader_val, trainer.forward, epoch, name='Val')
+                # visualizer.plot_val_errors(epoch, opt, score)
+                psnr_collection = lpips.eval_tnn_testset_psnr(data_loader_test, trainer.forward, opt.csv_path, epoch, psnrs)
+                visualizer.plot_test_psnr(epoch, opt, psnr_collection)
+            trainer.set_train()
     
 # trainer.save_done(True)
 fid.close()

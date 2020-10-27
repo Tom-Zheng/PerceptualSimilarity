@@ -25,6 +25,50 @@ def CreateDataLoader(datafolder,dataroot='./dataset',dataset_mode='2afc',load_si
 example run:
 ```
 sh scripts/submit_exp.sh test_run /home/zhengtian/tnn_data/panda/for_sr /home/zhengtian/tnn_data/panda/for_sr/exp/exp211_False_False 0 0
+
+
+sh scripts/submit_exp.sh test_run /home/zheng/Desktop/rl/data/20201024/img /home/zheng/Desktop/rl/data/20201024/exp211_False_False 0 0
+
+
+```
+
+Server:
+```bash
+nohup sh scripts/submit_exp.sh exp211 /home/zhengtian/tnn_data/panda/for_sr /home/zhengtian/tnn_data/panda/for_sr/exp/exp211_False_False 0 0 > exp211.out 2>&1 &
+nohup sh scripts/submit_exp.sh exp212 /home/zhengtian/tnn_data/panda/for_sr /home/zhengtian/tnn_data/panda/for_sr/exp/exp212_False_False 1 1 > exp212.out 2>&1 &
+nohup sh scripts/submit_exp.sh exp213 /home/zhengtian/tnn_data/panda/for_sr /home/zhengtian/tnn_data/panda/for_sr/exp/exp213_False_False 2 2 > exp213.out 2>&1 &
+
+
+nohup sh scripts/submit_exp.sh exp302_05 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp302_05_False_False 0 1 > exp302_05.out 2>&1 &
+nohup sh scripts/submit_exp.sh exp302_20 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp302_20_False_False 1 2 > exp302_20.out 2>&1 &
+nohup sh scripts/submit_exp.sh exp302_40 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp302_40_False_False 2 3 > exp302_40.out 2>&1 &
+
+
+exp302_05_False_False  exp302_20_False_False  exp302_40_False_False
+
+
+
+
+
+nohup sh scripts/submit_exp.sh exp302_05_01 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp302_05_False_False 1 3 > exp302_05_01.out 2>&1 &
+nohup sh scripts/submit_exp.sh exp302_20_01 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp302_20_False_False 2 4 > exp302_20_01.out 2>&1 &
+
+
+
+
+exp303_01_False_False
+exp303_03_False_False
+exp303_15_False_False
+exp303_40_False_False
+
+nohup sh scripts/submit_exp.sh exp303_01 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp303_01_False_False 0 0 > exp303_01.out 2>&1 &
+nohup sh scripts/submit_exp.sh exp303_03 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp303_03_False_False 1 1 > exp303_03.out 2>&1 &
+nohup sh scripts/submit_exp.sh exp303_15 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp303_15_False_False 2 2 > exp303_15.out 2>&1 &
+nohup sh scripts/submit_exp.sh exp303_40 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp303_40_False_False 0 3 > exp303_40.out 2>&1 &
+
+
+nohup sh scripts/submit_exp.sh exp303_15_01 /home/zhengtian/tnn_data/pandav/croped /home/zhengtian/tnn_data/pandav/croped/exp/exp303_15_False_False 1 5 > exp303_15_01.out 2>&1 &
+
 ```
 
 ## Perceptual Similarity Metric and Dataset [[Project Page]](http://richzhang.github.io/PerceptualSimilarity/)

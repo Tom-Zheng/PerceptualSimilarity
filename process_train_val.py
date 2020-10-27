@@ -23,7 +23,10 @@ n_train2 = int(n_train1 * args.lpips_train_ratio)
 n_test = int(n_total * args.test_ratio)
 n_val = n_train1 - n_train2
 
-assert(n_val > 0)
+assert(n_val >= 0)
+if n_val == 0:
+    n_val = 1
+
 
 df_mapping = pd.read_csv(os.path.join(args.csv_path,'mapping.csv'))
 lr_list = df_mapping['lr_path'].unique()

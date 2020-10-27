@@ -24,7 +24,7 @@ class Trainer():
 
     def initialize(self, model='lpips', net='alex', colorspace='Lab', pnet_rand=False, pnet_tune=False, model_path=None,
             use_gpu=True, printNet=False, spatial=False, 
-            is_train=False, lr=.0001, beta1=0.5, version='0.1', gpu_ids=[0]):
+            is_train=False, lr=.00001, beta1=0.5, version='0.1', gpu_ids=[0]):
         '''
         INPUTS
             model - ['lpips'] for linearly calibrated network
@@ -402,8 +402,67 @@ def eval_tnn_testset(data_loader, func, save_path):
                             index=ref_paths_unique, 
                             columns=p0_paths_unique)
     
-    path = os.path.join(save_path,'lpips_test.csv')
+    path = os.path.join(save_path,'latest_lpips_test.csv')
     scores_df.to_csv(path)
 
     print("Evaluated {} pairs in {} seconds.".format(len(d0s), end-start))
     print('Save to:', path)
+
+def eval_tnn_testset_psnr(data_loader, func, save_path, epoch, psnrs ,name="lpips_test.csv"):
+    ''' Function computes Two Alternative Forced Choice (2AFC) score using
+        the dataloader will iterate over lr-ref pairs (lr, ref_i, _not_used)
+        N lrs, M refs
+
+        output: NxM csv, filled with distances 
+    '''
+    d0s = []
+    ref_paths = []   #lr
+    p0_paths = []    #ref
+    
+    start = time.time()
+    for data in tqdm(data_loader.load_data(), desc='test'):
+        d0s+=func(data['ref'],data['p0']).data.cpu().numpy().flatten().tolist()
+        ref_paths += data['ref_path']
+        p0_paths += data['p0_path']
+    end = time.time()
+
+    ref_paths_unique = sorted(list(set(ref_paths)))
+    p0_paths_unique = sorted(list(set(p0_paths)))
+
+    N = len(ref_paths_unique)
+    M = len(p0_paths_unique)
+
+    assert(len(d0s) == N*M)
+    scores = np.array(d0s).reshape((N,M))
+
+    scores_df = pd.DataFrame(data=scores,
+                            index=ref_paths_unique, 
+                            columns=p0_paths_unique)
+    
+    path = os.path.join(save_path, 'epoch_{:03d}_'.format(epoch)+name)
+    scores_df.to_csv(path)
+
+    print("Evaluated {} pairs in {} seconds.".format(len(d0s), end-start))
+    print('Save to:', path)
+
+    # compute avg psnr...
+    # psnr_df = pd.read_csv(os.path.join(base_exp,'psnr.csv'))
+    # pdb.set_trace()
+    test_psnrs = psnrs[-N:]
+    assert(test_psnrs.shape == scores.shape)
+    best_psnr = test_psnrs.max(axis=1).mean()
+
+    random_indices = np.random.randint(test_psnrs.shape[1],size=test_psnrs.shape[0])
+    random_psnr = test_psnrs[range(test_psnrs.shape[0]), random_indices].mean()
+    # compute random PSNR 
+
+    # compute selected PSNR
+    ind = np.argsort(scores, axis=1)
+
+    ind_i = np.tile(np.arange(N).reshape(N,1),M)
+    ours_psnrs = test_psnrs[ind_i,ind]
+    lpips_psnr = ours_psnrs[:,0].mean()
+
+    return {'best_psnr': best_psnr,
+            'random_psnr': random_psnr,
+            'lpips_psnr': lpips_psnr}
