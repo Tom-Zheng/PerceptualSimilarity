@@ -39,8 +39,8 @@ python ./train.py --use_gpu --net ${NET} --name ${TRIAL} \
 --img_path ${IMG_PATH} \
 --csv_path ${CSV_PATH} 
 
-# --from_scratch \
 # --display_port 8098 \
+# --from_scratch \
 
 python ./test_dataset_model.py --use_gpu --net ${NET} \
 --model_path ./checkpoints/${TRIAL}/latest_net_.pth  \
